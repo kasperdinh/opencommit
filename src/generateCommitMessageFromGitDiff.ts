@@ -63,7 +63,8 @@ export const generateCommitMessageByDiff = async (
       const commitMessagePromises = await getCommitMsgsPromisesFromFileDiffs(
         diff,
         MAX_REQUEST_TOKENS,
-        fullGitMojiSpec
+        fullGitMojiSpec,
+        context
       );
 
       const commitMessages = [] as string[];
@@ -97,7 +98,8 @@ function getMessagesPromisesByChangesInFile(
   fileDiff: string,
   separator: string,
   maxChangeLength: number,
-  fullGitMojiSpec: boolean
+  fullGitMojiSpec: boolean,
+  context: string
 ) {
   const hunkHeaderSeparator = '@@ ';
   const [fileHeader, ...fileDiffByLines] = fileDiff.split(hunkHeaderSeparator);
@@ -125,7 +127,8 @@ function getMessagesPromisesByChangesInFile(
     async (lineDiff) => {
       const messages = await generateCommitMessageChatCompletionPrompt(
         separator + lineDiff,
-        fullGitMojiSpec
+        fullGitMojiSpec,
+        context
       );
 
       return engine.generateCommitMessage(messages);
@@ -174,7 +177,8 @@ function splitDiff(diff: string, maxChangeLength: number) {
 export const getCommitMsgsPromisesFromFileDiffs = async (
   diff: string,
   maxDiffLength: number,
-  fullGitMojiSpec: boolean
+  fullGitMojiSpec: boolean,
+  context: string
 ) => {
   const separator = 'diff --git ';
 
@@ -192,14 +196,16 @@ export const getCommitMsgsPromisesFromFileDiffs = async (
         fileDiff,
         separator,
         maxDiffLength,
-        fullGitMojiSpec
+        fullGitMojiSpec,
+        context
       );
 
       commitMessagePromises.push(...messagesPromises);
     } else {
       const messages = await generateCommitMessageChatCompletionPrompt(
         separator + fileDiff,
-        fullGitMojiSpec
+        fullGitMojiSpec,
+        context
       );
 
       const engine = getEngine();

@@ -41,6 +41,7 @@ interface GenerateCommitMessageFromGitDiffParams {
   diff: string;
   extraArgs: string[];
   context?: string;
+  prefix?: string;
   fullGitMojiSpec?: boolean;
   skipCommitConfirmation?: boolean;
 }
@@ -49,6 +50,7 @@ const generateCommitMessageFromGitDiff = async ({
   diff,
   extraArgs,
   context = '',
+  prefix = '',
   fullGitMojiSpec = false,
   skipCommitConfirmation = false
 }: GenerateCommitMessageFromGitDiffParams): Promise<void> => {
@@ -75,6 +77,11 @@ const generateCommitMessageFromGitDiff = async ({
         config.OCO_MESSAGE_TEMPLATE_PLACEHOLDER,
         commitMessage
       );
+    }
+
+    // Prepend user-provided prefix if any
+    if (prefix && prefix.trim().length > 0) {
+      commitMessage = `${prefix.trim()} ${commitMessage}`;
     }
 
     commitGenerationSpinner.stop('📝 Commit message generated');
@@ -202,6 +209,8 @@ ${chalk.grey('——————————————————')}`
         await generateCommitMessageFromGitDiff({
           diff,
           extraArgs,
+          context,
+          prefix,
           fullGitMojiSpec
         });
       }
@@ -222,6 +231,7 @@ ${chalk.grey('——————————————————')}`
 export async function commit(
   extraArgs: string[] = [],
   context: string = '',
+  prefix: string = '',
   isStageAllFlag: Boolean = false,
   fullGitMojiSpec: boolean = false,
   skipCommitConfirmation: boolean = false
@@ -264,7 +274,7 @@ export async function commit(
     if (isCancel(isStageAllAndCommitConfirmedByUser)) process.exit(1);
 
     if (isStageAllAndCommitConfirmedByUser) {
-      await commit(extraArgs, context, true, fullGitMojiSpec);
+      await commit(extraArgs, context, prefix, true, fullGitMojiSpec);
       process.exit(0);
     }
 
@@ -282,7 +292,7 @@ export async function commit(
       await gitAdd({ files });
     }
 
-    await commit(extraArgs, context, false, fullGitMojiSpec);
+    await commit(extraArgs, context, prefix, false, fullGitMojiSpec);
     process.exit(0);
   }
 
@@ -297,6 +307,7 @@ export async function commit(
       diff: await getDiff({ files: stagedFiles }),
       extraArgs,
       context,
+      prefix,
       fullGitMojiSpec,
       skipCommitConfirmation
     })

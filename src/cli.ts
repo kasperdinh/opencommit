@@ -30,6 +30,12 @@ cli(
         description: 'Additional user input context for the commit message',
         default: ''
       },
+      prefix: {
+        type: String,
+        alias: 'p',
+        description: 'Prefix to prepend to the generated commit message',
+        default: ''
+      },
       yes: {
         type: Boolean,
         alias: 'y',
@@ -47,7 +53,14 @@ cli(
     if (await isHookCalled()) {
       prepareCommitMessageHook();
     } else {
-      commit(extraArgs, flags.context, false, flags.fgm, flags.yes);
+      commit(
+        extraArgs,
+        flags.context,
+        flags.prefix,
+        false,
+        flags.fgm,
+        flags.yes
+      );
     }
   },
   extraArgs
